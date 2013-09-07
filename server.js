@@ -1,5 +1,6 @@
 // Load the TCP Library
-net = require('net');
+var net = require('net'),
+    fs = require('fs');
 
 // CONSTANTS
 var PORT = '8000';
@@ -20,8 +21,7 @@ var server = net.createServer(function (socket) {
 
         // Handle incoming messages from clients.
         socket.on('data', function (data) {
-            var command = data.toString().trim().split(' ');
-            process.stdout.write('\n<' + socket.name + ' DATA> ' + command[0]);
+            var command = data.toString().trim().split(';;');
             processCommand(command);
         });
 
@@ -34,14 +34,25 @@ var server = net.createServer(function (socket) {
         // Function to process the command
         function processCommand(command) {
             switch(command[0]) {
-                case '<REGISTER>': 
-                    process.stdout.write('Registering User ' + command[1]);
-                    // Send an acknowledgment
+                case '<NEWUSER>': 
+                    process.stdout.write('\n<NEWUSER ' + socket.name + '> ' + command[1]);
+                    fs.writeFile('\n' + command[1] + ';;');
+                    socket.write('<REGISTERED>');
+                    break;
+                case '<OLDUSER>': 
+                    process.stdout.write('\n<OLDUSER ' + socket.name + '> ' + command[1]);
+                    socket.write('<CACHED>');
                     break;
                 case '<SEARCH>':
                     // Lookup the database and then send the results
-                    process.stdout.write('reu');
-                    socket.write('<RESULTS> something'); 
+                    process.stdout.write('\n<SEARCH ' + socket.name + '> ' + command[1]);
+                    var results = "nothing";
+                    socket.write('<RESULTS> ' + results); 
+                    break;
+                case '<UPLOAD>':
+                    // Upload this file under the username of the user
+                    process.stdout.write('\n<UPLOAD ' + socket.name + '>' + command[1] + ' ' + command[2]);
+                    socket.write('<UPLOADED>');
                     break;
             }
             // Add more commands here and they should work flawlessly
@@ -49,7 +60,10 @@ var server = net.createServer(function (socket) {
 });
 
 // The server now starts listening on PORT
-server.listen(PORT);
-
+try {
+    server.listen(PORT);
+} catch(e) {
+    process.stdout.write(e.message);
+}
 // Put a friendly message on the terminal of the server.
 console.log('SERVER LISTENING ON PORT ' + PORT + '\n');
