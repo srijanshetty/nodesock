@@ -1,12 +1,12 @@
-// Include the net module to start TCP connections
-var net = require('net'),
-    fs = require('fs');
-
 // Check for the host name and the port number
 if(process.argv.length < 4 ){
     process.stdout.write('Insufficient Parameters passed');
     process.exit(1);
 }
+
+// Include the net module to start TCP connections
+var net = require('net'),
+    fs = require('fs');
 
 // Obtain the HOST and PORT from command line arguments
 var HOST = process.argv[2].toString(),
@@ -47,7 +47,7 @@ function processCommand(command) {
     menu();
 }
 
-// provides a listing of all the possible commands
+// provides a menu of the possible commands
 function menu(){
     ask('(S)earch (U)pload', /[SU]/i, function(option) {
         if (option === 'S') {
@@ -87,7 +87,7 @@ function search(){
     });
 }
 
-// uploads a list of files to server
+// uploads a file to server
 function upload(){
     ask('Filename/Tag', /.+/, function(filename) {
         ask('Absolute Filepath', /.+/, function(filelocation) {
@@ -96,7 +96,7 @@ function upload(){
     });
 }
 
-// prompts the user with a question
+// prompts the user with a question also checks regex
 function ask(question, format, callback) {
     var stdin = process.stdin, 
         stdout = process.stdout;
