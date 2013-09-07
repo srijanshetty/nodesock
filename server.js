@@ -1,7 +1,7 @@
 // Load the TCP Library
 net = require('net');
 
-//CONSTANTS
+// CONSTANTS
 var PORT = '8000';
 
 // Create a track of all the connected clients
@@ -10,7 +10,7 @@ var clients = [];
 // Start a TCP Server
 var server = net.createServer(function (socket) {
         // Identify this client
-        socket.name = socket.remoteAddress + ":" + socket.remotePort 
+        socket.name = socket.remoteAddress + ":" + socket.remotePort;
 
         // Put this new client in the list
         clients.push(socket);
@@ -31,6 +31,21 @@ var server = net.createServer(function (socket) {
             process.stdout.write('\n<' + socket.name + ' DISCONNECTED>');
         });
 
+        // Function to process the command
+        function processCommand(command) {
+            switch(command[0]) {
+                case '<REGISTER>': 
+                    process.stdout.write('Registering User ' + command[1]);
+                    // Send an acknowledgment
+                    break;
+                case '<SEARCH>':
+                    // Lookup the database and then send the results
+                    process.stdout.write('reu');
+                    socket.write('<RESULTS> something'); 
+                    break;
+            }
+            // Add more commands here and they should work flawlessly
+        }
 });
 
 // The server now starts listening on PORT
@@ -38,18 +53,3 @@ server.listen(PORT);
 
 // Put a friendly message on the terminal of the server.
 console.log('SERVER LISTENING ON PORT ' + PORT + '\n');
-
-// Function to process the command
-function processCommand(command) {
-    switch(command[0]) {
-        case '<REGISTER>': 
-            process.stdout.write('Registering User ' + command[1]);
-            break;
-        case '<SHARE>':
-            break;
-        case '<UPLOAD>':
-            break;
-        default :
-            break;
-    }
-}
