@@ -58,6 +58,7 @@ function menu(){
     });
 }
 
+// The username is always pased to the server
 function getUsername(){
     // If a configuration file exists, the username is picked from it
     // Else, the user is prompted for his name

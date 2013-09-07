@@ -6,15 +6,13 @@ var net = require('net'),
 var PORT = '8000';
 
 // Create a track of all the connected clients
-var clients = [];
+var clients = {},
+    username;
 
 // Start a TCP Server
 var server = net.createServer(function (socket) {
         // Identify this client
         socket.name = socket.remoteAddress + ":" + socket.remotePort;
-
-        // Put this new client in the list
-        clients.push(socket);
 
         // Echo in the server
         process.stdout.write('\n<' + socket.name + ' CONNECTED>');
@@ -27,20 +25,27 @@ var server = net.createServer(function (socket) {
 
         // Remove the client from the list when it leaves
         socket.on('end', function () {
-            clients.splice(clients.indexOf(socket), 1);
+            delete clients[username];
             process.stdout.write('\n<' + socket.name + ' DISCONNECTED>');
         });
 
-        // Function to process the command
+        // This is the meat of the server, it parses the commands and
+        // performs some action and logs it to the screen
         function processCommand(command) {
             switch(command[0]) {
                 case '<NEWUSER>': 
+                    // Log the command, write to file, add to client and send ACK
                     process.stdout.write('\n<NEWUSER ' + socket.name + '> ' + command[1]);
-                    fs.writeFile('\n' + command[1] + ';;');
+                    fs.writeFile('userlist', command[1]);
+                    username = command[1];
+                    clients[username] = socket.name;
                     socket.write('<REGISTERED>');
                     break;
                 case '<OLDUSER>': 
+                    // Log the command, add to client and send ACK
                     process.stdout.write('\n<OLDUSER ' + socket.name + '> ' + command[1]);
+                    username = command[1];
+                    clients[username] = socket.name;
                     socket.write('<CACHED>');
                     break;
                 case '<SEARCH>':
@@ -60,10 +65,7 @@ var server = net.createServer(function (socket) {
 });
 
 // The server now starts listening on PORT
-try {
-    server.listen(PORT);
-} catch(e) {
-    process.stdout.write(e.message);
-}
+server.listen(PORT);
+
 // Put a friendly message on the terminal of the server.
 console.log('SERVER LISTENING ON PORT ' + PORT + '\n');
