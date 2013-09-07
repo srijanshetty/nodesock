@@ -1,5 +1,6 @@
 // Include the net module to start TCP connections
-var net = require('net');
+var net = require('net'),
+    helper = require('./helper');
 
 // Check for the host name and the port number
 if(process.argv.length < 4 ){
@@ -8,46 +9,41 @@ if(process.argv.length < 4 ){
 }
 
 // Obtain the HOST and PORT from command line arguments
-var HOST = process.argv[2]; 
+var HOST = process.argv[2].toString(); 
 var PORT = parseInt(process.argv[3], 10); 
 
-// Helper functions
-// Function to ask questions 
-function ask(question, format, callback) {
-    var stdin = process.stdin, 
-        stdout = process.stdout;
+// Wait for the connect event
+var client = net.connect(PORT, HOST, function () {
+    process.stdout.write('\n<CONNECTED to ' + HOST + ':' + PORT +'>');
+    process.stdout.write('\nWelcome to Napster Rebooted.\nRegister(R)\nSearch(S)\nUpload(U)');
+    menu();
+});
 
-    stdin.resume();
-    stdout.write(question + ': ');
-
-    stdin.once('data', function(data) {
-        data = data.toString().trim();
-
-        if (format.test(data)) {
-            callback(data);
-        } else {
-            stdout.write('It should match: ' + format + '\n');
-            ask(question, format, callback);
+// Function for the menu
+function menu(){
+    helper.ask('\n\nEnter your choice (R/S/U)', /[RSU]/i, function(option) {
+        if(option === 'R'){
+            register(); 
+        } else if (option === 'S') {
+            search();
+        } else if (option === 'U') {
+            upload();
         }
     });
 }
 
 //Function to register
 function register(){
-    ask('Username:', /[\w\d]{6,}/, function(name) {
-        ask('Password:', /[\w\d]{6,}/, function(password) {
-            process.stdout.write(name + ' ' + password);    
+    helper.ask('Username', /[\w\d]{6,}/, function(name) {
+        helper.ask('Password', /[\w\d]{6,}/, function(password) {
+            client.write('<REGISTER> ' + name + ' ' + password);    
+            menu();
         });
     });
 }
 
-// wait for the connect event
-var client = net.connect(PORT, HOST, function () {
-    process.stdout.write('\n<CONNECTED to ' + HOST + ':' + PORT +'>');
-    process.stdout.write('\nWelcome to Napster Rebooted.\nRegister(R)\nSearch(S)\nUpload(U)');
-    ask('\n\nEnter your choice (R/S/U)', /[RSU]/i, function(name) {
-        if(name == 'R'){
-            register(); 
-        }
+function search(){
+    helper.ask('Search Query', /.+/, function(query){
+       client.write('<SEARCH> ' + query);
     });
-});
+}
