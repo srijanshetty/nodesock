@@ -1,7 +1,10 @@
 // Load the TCP Library
 net = require('net');
 
-// Keep track of the chat clients
+//CONSTANTS
+var PORT = '5000';
+
+// Create a track of all the connected clients
 var clients = [];
 
 // Start a TCP Server
@@ -15,33 +18,23 @@ net.createServer(function (socket) {
 
         // Send a nice welcome message and announce
         socket.write("Welcome " + socket.name + " to Napster Rebooted. You have the following choices:");
-        socket.write('\nRegister: R\nSearch: S');
+        socket.write('\nRegister: R\nSearch: S\nEnter your choice: ');
+        
+        // Echo in the server
+        process.stdout.write('\n<' + socket.name + ' CONNECTED>');
 
         // Handle incoming messages from clients.
         socket.on('data', function (data) {
-            if(data=='R\n'){
-                socket.write("Are you sure that you want to register?"); 
-            }
+            process.stdout.write('\n<' + socket.name + ' DATA>' + data);
         });
 
         // Remove the client from the list when it leaves
         socket.on('end', function () {
-                clients.splice(clients.indexOf(socket), 1);
-                broadcast(socket.name + " left the chat.\n");
-                });
+            clients.splice(clients.indexOf(socket), 1);
+            process.stdout.write('\n<' + socket.name + ' DISCONNECTED>');
+        });
 
-        // Send a message to all clients
-        function broadcast(message, sender) {
-            clients.forEach(function (client) {
-                    // Don't want to send it to sender
-                    if (client === sender) return;
-                    client.write(message);
-                    });
-            // Log it to the server output too
-            process.stdout.write(message)
-        }
-
-}).listen(5000);
+}).listen(PORT);
 
 // Put a friendly message on the terminal of the server.
-console.log("Chat server running at port 5000\n");
+console.log('SERVER LISTENING ON PORT ' + PORT + '\n');
