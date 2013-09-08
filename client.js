@@ -4,13 +4,6 @@ if(process.argv.length < 4 ){
     process.exit(1);
 } 
 
-// Modes of working
-var FILEUP = 0;
-
-// send a list of file for upload to the user
-if(process.argv.length === 5 && fs.existsSync(process.argv[4])){
-    var mode = FILEUP;
-}
 
 // Include the net module to start TCP connections
 var net = require('net'),
@@ -20,6 +13,15 @@ var net = require('net'),
 var HOST = process.argv[2].toString(),
     PORT = parseInt(process.argv[3], 10),
     USERNAME;
+
+// modes of working
+var FILEUP = 1,
+    mode = 0;
+
+// set mode of operation
+if(process.argv.length === 5 && fs.existsSync(process.argv[4])){
+    mode = FILEUP;
+}
 
 // First we create a client object and connect to a server
 // This object is then used to write to the server's socket
@@ -42,16 +44,22 @@ function processCommand(command) {
         case '<REGISTERED>':
             process.stdout.write('Registered\n');
             if(mode === FILEUP) {
-                fileup();
+                fileUpload();
             }
             break;
         case '<CACHED>':
+            if(mode === FILEUP) {
+                fileUpload();
+            }
             break;
         case '<RESULTS>': 
             processResults(command[1], command[2]);
             break;
         case '<UPLOADED>':
             process.stdout.write('Upload Succesful\n');
+            break;
+        case '<BULK_UPLOADED>':
+            process.stdout.write('Bulk Upload Succesful\n');
             break;
     }
     // Add more commands over here and they will work
@@ -144,4 +152,12 @@ function ask(question, format, callback) {
             ask(question, format, callback);
         }
     });
+}
+
+// This files looks into the supplied file for files and uploades them to the
+// server directly
+function fileUpload() {
+    var fileList = fs.readFileSync(process.argv[4], 'utf-8');
+    client.write('<BULK_UPLOAD>;;' + fileList);   
+    // here as well we wait for acknowlegment from the server for bulk upload
 }

@@ -65,6 +65,9 @@ var server = net.createServer(function (socket) {
                 case '<UPLOAD>':
                     upload(command[1], command[2], socket);
                     break;
+                case '<BULK_UPLOAD>':
+                    bulkUpload(command[1], socket);
+                    break;
             }
             // Add more commands here and they should work flawlessly
         }
@@ -116,5 +119,16 @@ function upload(filename, filelocation, socket) {
         db.run("INSERT INTO filelist VALUES ('" + socket.username + "','" + filename + "','" + filelocation + "')");
         socket.write('<UPLOADED>');
     });
+}
 
+// function to bulk upload files to the server
+function bulkUpload(list, socket) {
+    process.stdout.write('\n<BULK_UPLOAD ' + socket.name + '> ');
+    list = JSON.parse(list);
+    var listLength = list.length;
+    db.parallelize(function() {
+        for(var i=0; i<listLength; ++i) {
+            db.run("INSERT INTO filelist VALUES ('" + socket.username + "','" + list[i].filename + "','" + list[i].location + "')");
+        }
+    });
 }
