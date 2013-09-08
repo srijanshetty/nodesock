@@ -7,24 +7,30 @@ A simple tcp client server written in node
 ** __Interactive mode__: node client.js <hostname> <port>
 ** __Bulk Uploader__: node client.js <hostname> <port> <json_file>
 
-#Reasons for choosing node over python/C
-* Node is asynchronous and event based, so every connection is handled as a
-function with closure; this eliminates use of threads.
-* I wanted to try out node
-
 #Dependencies
 * Node
 * sqlite3
 
-#DESIGN
-* Every command sent to the server is of the form <TAG>;;parameter1;;parameter2..
-* ;; has been chosen as the delimiter arbitarily
-* Supported tags as of yet are
-** <NEWUSER>
-** <OLDUSER>
-** <SEARCH>
-** <UPLOAD>
-** <RESULTS>
-** <UPLOADED>
-** <REGISTERED>
-* One can netcat to the server and communicate using the above protocol
+#Design Decisions
+* __Multiple Clients__: Nodejs has been specifically used because of this
+reason, since nodejs handles everything asynchronously in an event loop, it
+has the ideal environment for a network application.
+
+* __Multiple Requests__: Each connection to the server serves as a _closure_; in
+essence, every connection is handled independent of other clients. Each request
+is handled inside this connection object.
+
+* __Database__: _sqlite_ has been used for the database as it does not need
+additional installations and only requires a node module. A simple file can
+serve as a sqlite database.
+
+* __Command Structure__: <COMMAND>;;parameter1;;parameter2..
+** ;; has been chosen as the delimiter arbitarily
+** Supported commands as of yet are:
+*** <NEWUSER>
+*** <OLDUSER>
+*** <SEARCH>
+*** <UPLOAD>
+*** <RESULTS>
+*** <UPLOADED>
+*** <REGISTERED>
