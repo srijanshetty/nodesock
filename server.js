@@ -35,7 +35,7 @@ var server = net.createServer(function (socket) {
         socket.name = socket.remoteAddress + ":" + socket.remotePort;
         
         // Echo in the server
-        process.stdout.write('\n<' + socket.name + ' CONNECTED>');
+        process.stdout.write('\n<CONNECTED ' + socket.name + '>');
 
         // Handle incoming messages from clients.
         socket.on('data', function (data) {
@@ -46,7 +46,7 @@ var server = net.createServer(function (socket) {
         // Remove the client from the list when it leaves
         socket.on('end', function () {
             delete clients[socket.username];
-            process.stdout.write('\n<' + socket.name + ' DISCONNECTED>');
+            process.stdout.write('\n<DISCONNECTED ' + socket.name + '>');
         });
 
         // This is the meat of the server, it parses the commands and
