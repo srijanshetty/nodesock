@@ -4,8 +4,8 @@ A simple tcp client server written in node
 #Usage
 1. First run the server node server.js
 2. Now, the client has two modes
-** __Interactive mode__: node client.js <hostname> <port>
-** __Bulk Uploader__: node client.js <hostname> <port> <json_file>
+ * __Interactive mode__: node client.js <hostname> <port>
+ * __Bulk Uploader__: node client.js <hostname> <port> <json_file>
 
 #Dependencies
 * Node
@@ -24,13 +24,13 @@ is handled inside this connection object.
 additional installations and only requires a node module. A simple file can
 serve as a sqlite database.
 
-* __Command Structure__: <COMMAND>;;parameter1;;parameter2..
-** ;; has been chosen as the delimiter arbitarily
-** Supported commands as of yet are:
-*** <NEWUSER>
-*** <OLDUSER>
-*** <SEARCH>
-*** <UPLOAD>
-*** <RESULTS>
-*** <UPLOADED>
-*** <REGISTERED>
+* __Command Structure__: \<COMMAND\>;;parameter1;;parameter2..
+
+ * ;; has been chosen as the delimiter arbitarily
+ * \<NEWUSER\>
+ * \<OLDUSER\>
+ * \<SEARCH\>
+ * \<UPLOAD\>
+ * \<RESULTS\>
+ * \<UPLOADED\>
+ * \<REGISTERED\>
