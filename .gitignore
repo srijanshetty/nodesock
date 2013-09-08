@@ -1,3 +1,4 @@
 config_client
 node_modules/
 userlist
+database.db

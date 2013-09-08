@@ -2,6 +2,14 @@
 if(process.argv.length < 4 ){
     process.stdout.write('Insufficient Parameters passed');
     process.exit(1);
+} 
+
+// Modes of working
+var FILEUP = 0;
+
+// send a list of file for upload to the user
+if(process.argv.length === 5 && fs.existsSync(process.argv[4])){
+    var mode = FILEUP;
 }
 
 // Include the net module to start TCP connections
@@ -24,7 +32,7 @@ var client = net.connect(PORT, HOST, function () {
 // Whenever the server sends some data, we process the
 // command token in the sent data
 client.on('data', function(data) {
-    var command = data.toString().trim().split(' ');
+    var command = data.toString().trim().split(';;');
     processCommand(command);
 });
 
@@ -33,11 +41,14 @@ function processCommand(command) {
     switch(command[0]) {
         case '<REGISTERED>':
             process.stdout.write('Registered\n');
+            if(mode === FILEUP) {
+                fileup();
+            }
             break;
         case '<CACHED>':
             break;
         case '<RESULTS>': 
-            process.stdout.write('Results: ' + command[1] + '\n');
+            processResults(command[1], command[2]);
             break;
         case '<UPLOADED>':
             process.stdout.write('Upload Succesful\n');
@@ -49,11 +60,14 @@ function processCommand(command) {
 
 // provides a menu of the possible commands
 function menu(){
-    ask('(S)earch (U)pload', /[SU]/i, function(option) {
-        if (option === 'S') {
+    ask('(S)earch (U)pload', /(S|U)/i, function(option) {
+        if (option === 'S' | option === 's') {
             search();
-        } else if (option === 'U') {
+        } else if (option === 'U'| option === 'u') {
             upload();
+        } else {
+            process.stdout.write('[ ERR ] Should Match RegEx /(S|U)/i \n');
+            menu();
         }
     });
 }
@@ -94,6 +108,22 @@ function upload(){
             client.write('<UPLOAD>;;' + filename + ';;' + filelocation);   
         });
     });
+}
+
+// processes the results obtained from the user
+function processResults(results, users) {
+    results = JSON.parse(results);
+    users = JSON.parse(users);
+    
+    // for each user in the users list and results list
+    var resLength = results.length;
+    for(var i=0; i<resLength; ++i) {
+        if(users[results[i].username]){
+            process.stdout.write('\nIP:\t\t' + users[results[i].username]);
+            process.stdout.write('\nFilename:\t' + results[i].filename);
+            process.stdout.write('\nLocation:\t' + results[i].filelocation +'\n\n');
+        }
+    }
 }
 
 // prompts the user with a question also checks regex
