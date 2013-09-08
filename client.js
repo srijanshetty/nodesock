@@ -68,12 +68,14 @@ function processCommand(command) {
 
 // provides a menu of the possible commands
 function menu(){
-    ask('(S)earch (U)pload', /(S|U)/i, function(option) {
+    ask('(S)earch (U)pload', /(S|U|Q)/i, function(option) {
         if (option === 'S' | option === 's') {
             search();
         } else if (option === 'U'| option === 'u') {
             upload();
-        } else {
+        } else if (option === 'Q' | option === 'q') {
+            process.exit(0);
+        }else {
             process.stdout.write('[ ERR ] Should Match RegEx /(S|U)/i \n');
             menu();
         }
