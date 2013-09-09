@@ -4,7 +4,6 @@ if(process.argv.length < 4 ){
     process.exit(1);
 } 
 
-
 // Include the net module to start TCP connections
 var net = require('net'),
     fs = require('fs');
@@ -26,8 +25,7 @@ if(process.argv.length === 5 && fs.existsSync(process.argv[4])){
 // First we create a client object and connect to a server
 // This object is then used to write to the server's socket
 var client = net.connect(PORT, HOST, function () {
-    process.stdout.write('\n<CONNECTED to ' + HOST + ':' + PORT +'>');
-    process.stdout.write('\nWelcome to Napster Rebooted.\n\n');
+    process.stdout.write('\n<CONNECTED to ' + HOST + ':' + PORT +'>\n\n');
     getUsername();
 });
 
@@ -42,7 +40,7 @@ client.on('data', function(data) {
 function processCommand(command) {
     switch(command[0]) {
         case '<REGISTERED>':
-            process.stdout.write('Registered\n');
+            returnStatus('Registered\n');
             if(mode === FILEUP) {
                 fileUpload();
             }
@@ -56,27 +54,30 @@ function processCommand(command) {
             processResults(command[1], command[2]);
             break;
         case '<UPLOADED>':
-            process.stdout.write('Upload Succesful\n');
+            returnStatus('Upload Succesful\n');
             break;
         case '<BULK_UPLOADED>':
-            process.stdout.write('Bulk Upload Succesful\n');
+            returnStatus('Bulk Upload Succesful');
             break;
     }
+
     // Add more commands over here and they will work
     menu();
 }
 
 // provides a menu of the possible commands
 function menu(){
-    ask('(S)earch (U)pload', /(S|U|Q)/i, function(option) {
+    ask('(S)earch\t]\n[ (U)pload\t]\n[ (D)ownload\t] \n[ (Q)uit\t]\n[ Enter Choice', /(S|U|Q|D)/i, function(option) {
         if (option === 'S' | option === 's') {
             search();
         } else if (option === 'U'| option === 'u') {
             upload();
         } else if (option === 'Q' | option === 'q') {
             process.exit(0);
-        }else {
-            process.stdout.write('[ ERR ] Should Match RegEx /(S|U)/i \n');
+        } else if (option === 'D' | option === 'd') {
+            downloadFile();
+        } else {
+            returnStatus('ERROR Should Match RegEx /(S|U|Q)/i \n');
             menu();
         }
     });
@@ -90,13 +91,14 @@ function getUsername(){
         USERNAME = fs.readFileSync('./config_client', 'utf-8');
         client.write('<OLDUSER>;;' + USERNAME);
     } else {
-        ask('Username', /[\w\d]{6,}/, function(name) {
+        ask('Handle(username)', /[\w\d]{6,}/, function(name) {
             fs.writeFile('config_client', name);
             USERNAME = name;
             client.write('<NEWUSER>;;' + name);    
         });
     }
-    // After writing the data to the server, it has to wait for a result
+
+    // After writing the data tp the server, it has to wait for a result
     // This is handled in the processCommand function
     // in the form of acknowledgmenets
 }
@@ -114,10 +116,24 @@ function search(){
 // uploads a file to server
 function upload(){
     ask('Filename/Tag', /.+/, function(filename) {
-        ask('Absolute Filepath', /.+/, function(filelocation) {
-            client.write('<UPLOAD>;;' + filename + ';;' + filelocation);   
+        ask('Filepath', /.+/, function(filelocation) {
+            if(fs.existsSync(filelocation)){
+                filelocation = fs.realpathSync(filelocation);
+                client.write('<UPLOAD>;;' + filename + ';;' + filelocation);   
+            } else {
+                returnStatus('ERROR File does not exists\n');
+                menu();
+            }
         });
     });
+}
+
+// This files looks into the supplied file for files and uploades them to the
+// server directly
+function fileUpload() {
+    var fileList = fs.readFileSync(process.argv[4], 'utf-8');
+    client.write('<BULK_UPLOAD>;;' + fileList);   
+    // here as well we wait for acknowlegment from the server for bulk upload
 }
 
 // processes the results obtained from the user
@@ -131,9 +147,27 @@ function processResults(results, users) {
         if(users[results[i].username]){
             process.stdout.write('\nIP:\t\t' + users[results[i].username]);
             process.stdout.write('\nFilename:\t' + results[i].filename);
-            process.stdout.write('\nLocation:\t' + results[i].filelocation +'\n\n');
+            process.stdout.write('\nLocation:\t' + results[i].filelocation +'\n');
         }
     }
+    
+    if(resLength === 0) {
+        returnStatus('No matching filename');
+    } 
+
+    // add an extra new line for better legibility
+    process.stdout.write('\n');
+
+}
+
+// download files
+function downloadFile(){
+    ask('Ip address', /\d{1,3}[.]\d{1,3}[.]\d{1,3}[.]\d{1,3}/, function(ip) {
+       ask('Location', /.+/, function(filelocation) {
+            //var fileClient = net.connect(9000, ip, function () {
+            //};
+        }); 
+    });
 }
 
 // prompts the user with a question also checks regex
@@ -142,7 +176,7 @@ function ask(question, format, callback) {
         stdout = process.stdout;
 
     stdin.resume();
-    stdout.write('[ ' + question + ' ] ' + '\t>> ');
+    stdout.write('[ ' + question + '\t]' + '\t >> ');
 
     stdin.once('data', function(data) {
         data = data.toString().trim();
@@ -150,16 +184,16 @@ function ask(question, format, callback) {
         if (format.test(data)) {
             callback(data);
         } else {
-            stdout.write('[ ERR ] Should Match RegEx ' + format + '\n');
+            returnStatus('ERROR Should Match RegEx ' + format + '\n');
             ask(question, format, callback);
         }
     });
 }
 
-// This files looks into the supplied file for files and uploades them to the
-// server directly
-function fileUpload() {
-    var fileList = fs.readFileSync(process.argv[4], 'utf-8');
-    client.write('<BULK_UPLOAD>;;' + fileList);   
-    // here as well we wait for acknowlegment from the server for bulk upload
+// shows the return status
+function returnStatus(statusString) {
+    process.stdout.write('[ Status\t]\t::: ' +statusString + '\n');
 }
+
+var PORT = 9000;
+// the below is a server which listens for requests to share files

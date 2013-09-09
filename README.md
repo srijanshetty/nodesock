@@ -24,6 +24,9 @@ is handled inside this connection object.
 additional installations and only requires a node module. A simple file can
 serve as a sqlite database.
 
+* __Filepath__: Filepaths are resolved before sending them to the server,
+invalid paths are signalled as an error.
+
 * __Command Structure__: \<COMMAND\>;;parameter1;;parameter2..
 
  * ;; has been chosen as the delimiter arbitarily
