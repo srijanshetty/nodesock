@@ -11,7 +11,8 @@ var net = require('net'),
 // Obtain the HOST and PORT from command line arguments
 var HOST = process.argv[2].toString(),
     PORT = parseInt(process.argv[3], 10),
-    USERNAME;
+    USERNAME,
+    FILEPORT = 9000;
 
 // modes of working
 var FILEUP = 1,
@@ -21,6 +22,23 @@ var FILEUP = 1,
 if(process.argv.length === 5 && fs.existsSync(process.argv[4])){
     mode = FILEUP;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Below is a server which listens on FILEPORT for requests to share files
+var server = net.createServer(function(socket) {
+    socket.on('data', function(data) {
+        data = data.toString().trim().split(';;');
+        if(data[0] === '<DOWNLOAD>') {
+             if(fs.existsSync(data[1])) {
+                 fs.readFile(data[1], function (err, file) {
+                    socket.write(file);
+                 });
+             } else {
+                socket.write('<ERROR>;;');
+             }
+        }
+    });
+}).listen(FILEPORT);
 
 // First we create a client object and connect to a server
 // This object is then used to write to the server's socket
@@ -35,6 +53,7 @@ client.on('data', function(data) {
     var command = data.toString().trim().split(';;');
     processCommand(command);
 });
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // here we process the command token
 function processCommand(command) {
@@ -143,17 +162,26 @@ function processResults(results, users) {
     
     // for each user in the users list and results list
     var resLength = results.length;
+    var activeUsers = 0;
     for(var i=0; i<resLength; ++i) {
         if(users[results[i].username]){
             process.stdout.write('\nIP:\t\t' + users[results[i].username]);
             process.stdout.write('\nFilename:\t' + results[i].filename);
             process.stdout.write('\nLocation:\t' + results[i].filelocation +'\n');
+            activeUsers++;
         }
     }
     
+    // Check for no results
     if(resLength === 0) {
         returnStatus('No matching filename');
     } 
+
+    // check for no active users
+    if(activeUsers == 0) {
+        returnStatus('No active users');
+    }
+
 
     // add an extra new line for better legibility
     process.stdout.write('\n');
@@ -164,8 +192,18 @@ function processResults(results, users) {
 function downloadFile(){
     ask('Ip address', /\d{1,3}[.]\d{1,3}[.]\d{1,3}[.]\d{1,3}/, function(ip) {
        ask('Location', /.+/, function(filelocation) {
-            //var fileClient = net.connect(9000, ip, function () {
-            //};
+            var fileClient = net.connect(FILEPORT, ip);
+            fileClient.on('connect', function () {
+                fileClient.write('<DOWNLOAD>;;' + filelocation);
+            });
+
+            fileClient.on('data', function(data) {
+                fs.writeFile('recieved', data, function () {
+                    fileClient.destroy();
+                    process.stdout.write('\n');
+                    menu();
+                });
+            });
         }); 
     });
 }
@@ -194,6 +232,3 @@ function ask(question, format, callback) {
 function returnStatus(statusString) {
     process.stdout.write('[ Status\t]\t::: ' +statusString + '\n');
 }
-
-var PORT = 9000;
-// the below is a server which listens for requests to share files

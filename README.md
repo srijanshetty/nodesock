@@ -27,6 +27,9 @@ serve as a sqlite database.
 * __Filepath__: Filepaths are resolved before sending them to the server,
 invalid paths are signalled as an error.
 
+* __P2P__: Every client has a listener at FILEPORT, whenever it recieves a
+request to share a file, it sends the entire file to peer asking for it.
+
 * __Command Structure__: \<COMMAND\>;;parameter1;;parameter2..
 
  * ;; has been chosen as the delimiter arbitarily
@@ -37,3 +40,7 @@ invalid paths are signalled as an error.
  * \<RESULTS\>
  * \<UPLOADED\>
  * \<REGISTERED\>
+
+#Limitations
+* All p2p transferred files are written to a single file called recieved. Which
+is overwritten every time.
