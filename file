@@ -1,11 +1,11 @@
 [
     {
-        "filename":"another",
-        "location":"brick in the wall"
+        "filename":"years.mp3",
+        "location":"contents/years.mp3"
     },
     {
-        "filename":"something",
-        "location":"the world"
+        "filename":"first",
+        "location":"contents/first"
     }
 ]
         
