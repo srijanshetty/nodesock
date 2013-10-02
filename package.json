@@ -1,0 +1,23 @@
+{
+  "name": "nodesock",
+  "version": "1.0.0",
+  "description": "A simple tcp client server written in node",
+  "main": "server.js",
+  "scripts": {
+    "test": "test",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/srijanshetty/nodesock.git"
+  },
+  "keywords": [
+    "sockets",
+    "networks"
+  ],
+  "author": "Srijan R Shetty",
+  "license": "GPL v2",
+  "bugs": {
+    "url": "https://github.com/srijanshetty/nodesock/issues"
+  }
+}
