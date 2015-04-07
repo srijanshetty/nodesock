@@ -1,5 +1,5 @@
 #Introduction
-A simple tcp client server written in node
+A simple file sharing program written in node
 
 #Usage
 1. First run the server node server.js
